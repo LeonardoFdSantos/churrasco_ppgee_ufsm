@@ -13,7 +13,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { DollarSign, Users, AlertCircle, Loader2, Zap, CheckCircle, Clock } from "lucide-react";
+import { 
+    DollarSign, Users, AlertCircle, Loader2, Zap, CheckCircle, Clock, Target // NOVOS ÍCONES
+} from "lucide-react";
 
 // ⚠️ SEU LINK (Mantenha o que você já configurou)
 const API_URL = "https://script.google.com/macros/s/AKfycbzxXmTlxzi_DNjy2kume35loHfgFicyCSeIuUjtoe6uhS_XXL7qU2DI04xmrPBLEXy2TA/exec";
@@ -80,6 +82,7 @@ export default function Dashboard() {
 
 
   if (loading) {
+    // ... Código de Carregamento ...
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
@@ -99,43 +102,18 @@ export default function Dashboard() {
   if (activeTab === "professores") {
     currentData = data.tabela_professores;
     keys = {
-      name: "",
-      paid: "Pagamentos confirmados",
-      missing: "Faltante",
-      people_confirmed: "Professores confirmados",
-      companions: "Acompanhantes confirmados",
-      // Rótulos
-      kpi_people_title: 'Professores Confirmados',
-      kpi_people_label: '(Apenas Professores)',
-      kpi_companion_label: '(Acomp. Professores)',
+      name: "", paid: "Pagamentos confirmados", missing: "Faltante", people_confirmed: "Professores confirmados", companions: "Acompanhantes confirmados", kpi_people_title: 'Professores Confirmados', kpi_people_label: '(Apenas Professores)', kpi_companion_label: '(Acomp. Professores)',
     };
   } else if (activeTab === "alunos") {
     currentData = data.tabela_alunos;
     keys = {
-      name: "",
-      paid: "Valor Pago",
-      missing: "Valores Faltante",
-      people_confirmed: "Alunos confirmados",
-      companions: "Acompanhantes confirmados",
-      // Rótulos
-      kpi_people_title: 'Alunos Confirmados',
-      kpi_people_label: '(Apenas Alunos)',
-      kpi_companion_label: '(Acomp. Alunos)',
+      name: "", paid: "Valor Pago", missing: "Valores Faltante", people_confirmed: "Alunos confirmados", companions: "Acompanhantes confirmados", kpi_people_title: 'Alunos Confirmados', kpi_people_label: '(Apenas Alunos)', kpi_companion_label: '(Acomp. Alunos)',
     };
   } else if (activeTab === "total") {
     currentData = [];
     totalRow = consolidatedTotal; 
     keys = {
-      name: "",
-      paid: "Pagamento Consolidado",
-      missing: "Faltante Consolidado",
-      // Chaves do objeto consolidado
-      people_confirmed: "Total Base (Prof + Aluno)", 
-      companions: "Total Acompanhantes",
-      // Rótulos
-      kpi_people_title: 'Pessoas Base Confirmadas',
-      kpi_people_label: '(Professores + Alunos)',
-      kpi_companion_label: '(Total Acompanhantes)',
+      name: "", paid: "Pagamento Consolidado", missing: "Faltante Consolidado", people_confirmed: "Total Base (Prof + Aluno)", companions: "Total Acompanhantes", kpi_people_title: 'Pessoas Base Confirmadas', kpi_people_label: '(Professores + Alunos)', kpi_companion_label: 'Total Acompanhantes',
     };
   }
 
@@ -161,22 +139,9 @@ export default function Dashboard() {
           
           {/* Botões de Alternância (Abas) */}
           <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
-            <TabButton 
-              isActive={activeTab === "professores"} 
-              onClick={() => setActiveTab("professores")} 
-              label="Professores" 
-            />
-            <TabButton 
-              isActive={activeTab === "alunos"} 
-              onClick={() => setActiveTab("alunos")} 
-              label="Alunos" 
-            />
-            <TabButton 
-              isActive={activeTab === "total"} 
-              onClick={() => setActiveTab("total")} 
-              label="Total Geral" 
-              icon={<Zap className="w-4 h-4 mr-1"/>}
-            />
+            <TabButton isActive={activeTab === "professores"} onClick={() => setActiveTab("professores")} label="Professores" />
+            <TabButton isActive={activeTab === "alunos"} onClick={() => setActiveTab("alunos")} label="Alunos" />
+            <TabButton isActive={activeTab === "total"} onClick={() => setActiveTab("total")} label="Total Geral" icon={<Zap className="w-4 h-4 mr-1"/>} />
           </div>
         </div>
 
@@ -187,7 +152,7 @@ export default function Dashboard() {
           <KpiCard 
             title="Arrecadado" 
             value={totalRow[keys.paid]} 
-            icon={<DollarSign className="text-emerald-600 w-5 h-5" />} 
+            icon={DollarSign} 
             colorClass="border-emerald-500 bg-emerald-50"
             textColor="text-emerald-700"
             subtitle={activeTab === 'total' ? '(Professores + Alunos)' : ''}
@@ -197,7 +162,7 @@ export default function Dashboard() {
           <KpiCard 
             title="Faltante" 
             value={totalRow[keys.missing]} 
-            icon={<AlertCircle className="text-rose-600 w-5 h-5" />} 
+            icon={AlertCircle} 
             colorClass="border-rose-500 bg-rose-50"
             textColor="text-rose-700"
             subtitle={activeTab === 'total' ? '(Professores + Alunos)' : ''}
@@ -208,7 +173,7 @@ export default function Dashboard() {
               title={keys.kpi_people_title} 
               value={totalPeopleBase} 
               isCurrency={false}
-              icon={<CheckCircle className="text-blue-600 w-5 h-5" />} 
+              icon={CheckCircle} 
               colorClass="border-blue-500 bg-blue-50"
               textColor="text-blue-700"
               subtitle={keys.kpi_people_label}
@@ -219,7 +184,7 @@ export default function Dashboard() {
               title="Total Acompanhantes" 
               value={totalCompanionsCount} 
               isCurrency={false}
-              icon={<Users className="text-purple-600 w-5 h-5" />} 
+              icon={Users} 
               colorClass="border-purple-500 bg-purple-50"
               textColor="text-purple-700"
               subtitle={keys.kpi_companion_label}
@@ -227,22 +192,67 @@ export default function Dashboard() {
 
         </div>
         
-        {/* Gráfico e Tabela */}
+        {/* Bloco de Resumo Consolidado Detalhado */}
         
         {activeTab === 'total' ? (
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h2 className="text-xl font-bold mb-4 text-slate-800">Resumo Consolidado Detalhado</h2>
                 <div className="space-y-3 p-4 bg-slate-50 rounded-lg border">
-                    <SummaryRow label="Arrecadado Total" value={consolidatedTotal["Pagamento Consolidado"]} isMissing={false}/>
-                    <SummaryRow label="Faltante Total" value={consolidatedTotal["Faltante Consolidado"]} isMissing={true}/>
-                    <SummaryRow label="Esperado Total" value={consolidatedTotal["Esperado Consolidado"]} isMissing={false}/>
-                    <hr className="my-3"/>
-                    <SummaryRow label="Total de Pessoas (Base: Prof + Aluno)" value={consolidatedTotal["Total Base (Prof + Aluno)"]} isMissing={false} isCurrency={false}/>
-                    <SummaryRow label="Total de Acompanhantes" value={consolidatedTotal["Total Acompanhantes"]} isMissing={false} isCurrency={false}/>
-                    <SummaryRow label="PESSOAS TOTAIS GERAIS" value={consolidatedTotal["Total Pessoas (Geral)"]} isMissing={false} isCurrency={false} isBold={true}/>
+                    {/* Linha Financeira - COM ÍCONES E CORES CLARAS */}
+                    <SummaryRow 
+                        label="Arrecadado Total" 
+                        value={consolidatedTotal["Pagamento Consolidado"]} 
+                        isMissing={false}
+                        icon={DollarSign}
+                        valueColor="text-emerald-600"
+                    />
+                    <SummaryRow 
+                        label="Faltante Total" 
+                        value={consolidatedTotal["Faltante Consolidado"]} 
+                        isMissing={true} // Isso garante a cor vermelha (text-rose-600)
+                        icon={Clock}
+                    />
+                    <SummaryRow 
+                        label="Esperado Total" 
+                        value={consolidatedTotal["Esperado Consolidado"]} 
+                        isMissing={false}
+                        icon={Target}
+                        valueColor="text-blue-600" // Cor azul para valor Esperado/Meta
+                    />
+
+                    {/* Separador */}
+                    <hr className="my-3 border-slate-300"/> 
+
+                    {/* Linha de Pessoas */}
+                    <SummaryRow 
+                        label="Total de Pessoas (Base: Prof + Aluno)" 
+                        value={consolidatedTotal["Total Base (Prof + Aluno)"]} 
+                        isMissing={false} 
+                        isCurrency={false}
+                        icon={CheckCircle}
+                        valueColor="text-slate-700"
+                    />
+                    <SummaryRow 
+                        label="Total de Acompanhantes" 
+                        value={consolidatedTotal["Total Acompanhantes"]} 
+                        isMissing={false} 
+                        isCurrency={false}
+                        icon={Users}
+                        valueColor="text-slate-700"
+                    />
+                    <SummaryRow 
+                        label="PESSOAS TOTAIS GERAIS" 
+                        value={consolidatedTotal["Total Pessoas (Geral)"]} 
+                        isMissing={false} 
+                        isCurrency={false} 
+                        isBold={true}
+                        icon={Zap}
+                        valueColor="text-slate-900" 
+                    />
                 </div>
             </div>
         ) : (
+            // ... Código do Gráfico e Tabela (mantido) ...
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* GRÁFICO (Ocupa 1/3) */}
                  <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
@@ -330,10 +340,10 @@ const TabButton = ({ isActive, onClick, label, icon }) => (
   </button>
 );
 
-const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true, subtitle = '' }) => (
+const KpiCard = ({ title, value, icon: Icon, colorClass, textColor, isCurrency = true, subtitle = '' }) => (
   <div className={`p-5 rounded-xl border shadow-sm flex flex-col justify-between relative overflow-hidden bg-white`}>
     <div className={`absolute top-0 right-0 p-3 rounded-bl-xl border-b border-l ${colorClass}`}>
-        {icon}
+        <Icon className="w-5 h-5" />
     </div>
     
     <div>
@@ -346,10 +356,16 @@ const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true,
   </div>
 );
 
-const SummaryRow = ({ label, value, isMissing, isCurrency = true, isBold = false }) => (
+// COMPONENTE SummaryRow ATUALIZADO
+const SummaryRow = ({ label, value, isMissing, isCurrency = true, isBold = false, icon: Icon, valueColor = 'text-emerald-600' }) => (
     <div className={`flex justify-between items-center ${isBold ? 'font-bold text-lg border-t pt-2 border-slate-200' : 'text-sm'}`}>
-        <span>{label}</span>
-        <span className={`${isMissing ? 'text-rose-600' : 'text-emerald-600'}`}>
+        <span className="flex items-center gap-2">
+            {/* Ícone no Rótulo */}
+            {Icon && <Icon className={`w-4 h-4 ${isBold ? 'text-slate-800' : 'text-slate-500'}`} />}
+            {label}
+        </span>
+        {/* Cor do Valor: Se isMissing for true, usa rose-600, senão usa valueColor */}
+        <span className={`${isMissing ? 'text-rose-600' : valueColor}`}>
             {isCurrency ? formatCurrency(value) : value}
         </span>
     </div>
