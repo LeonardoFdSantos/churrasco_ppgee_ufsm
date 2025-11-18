@@ -13,7 +13,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { DollarSign, Users, AlertCircle, Loader2, TrendingUp, Zap, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, Users, AlertCircle, Loader2, Zap, CheckCircle, Clock } from "lucide-react";
 
 // ⚠️ SEU LINK (Mantenha o que você já configurou)
 const API_URL = "https://script.google.com/macros/s/AKfycbzxXmTlxzi_DNjy2kume35loHfgFicyCSeIuUjtoe6uhS_XXL7qU2DI04xmrPBLEXy2TA/exec";
@@ -102,11 +102,12 @@ export default function Dashboard() {
       name: "",
       paid: "Pagamentos confirmados",
       missing: "Faltante",
-      expected: "Valores Esperados",
       people_confirmed: "Professores confirmados",
       companions: "Acompanhantes confirmados",
-      kpi_people_label: 'Professores',
-      kpi_companion_label: 'Acomp. Professores',
+      // Rótulos
+      kpi_people_title: 'Professores Confirmados',
+      kpi_people_label: '(Apenas Professores)',
+      kpi_companion_label: '(Acomp. Professores)',
     };
   } else if (activeTab === "alunos") {
     currentData = data.tabela_alunos;
@@ -114,11 +115,12 @@ export default function Dashboard() {
       name: "",
       paid: "Valor Pago",
       missing: "Valores Faltante",
-      expected: "Valores Esperados",
       people_confirmed: "Alunos confirmados",
       companions: "Acompanhantes confirmados",
-      kpi_people_label: 'Alunos',
-      kpi_companion_label: 'Acomp. Alunos',
+      // Rótulos
+      kpi_people_title: 'Alunos Confirmados',
+      kpi_people_label: '(Apenas Alunos)',
+      kpi_companion_label: '(Acomp. Alunos)',
     };
   } else if (activeTab === "total") {
     currentData = [];
@@ -127,11 +129,13 @@ export default function Dashboard() {
       name: "",
       paid: "Pagamento Consolidado",
       missing: "Faltante Consolidado",
-      expected: "Esperado Consolidado",
-      people_confirmed: "Total Pessoas (Geral)", 
+      // Chaves do objeto consolidado
+      people_confirmed: "Total Base (Prof + Aluno)", 
       companions: "Total Acompanhantes",
-      kpi_people_label: 'Base (Prof + Aluno)',
-      kpi_companion_label: 'Total Acompanhantes',
+      // Rótulos
+      kpi_people_title: 'Pessoas Base Confirmadas',
+      kpi_people_label: '(Professores + Alunos)',
+      kpi_companion_label: '(Total Acompanhantes)',
     };
   }
 
@@ -141,15 +145,8 @@ export default function Dashboard() {
   }
   
   // Contagens para os cards
-  const totalPeopleBase = activeTab === 'total' 
-    ? consolidatedTotal["Total Base (Prof + Aluno)"] 
-    : (totalRow[keys.people_confirmed] || 0);
-
-  const totalCompanionsCount = activeTab === 'total'
-    ? consolidatedTotal["Total Acompanhantes"]
-    : (totalRow[keys.companions] || 0);
-
-  const totalAllPeople = totalPeopleBase + totalCompanionsCount;
+  const totalPeopleBase = totalRow[keys.people_confirmed] || 0;
+  const totalCompanionsCount = totalRow[keys.companions] || 0;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
@@ -183,66 +180,50 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* CARDS DE TOTAL (KPIs) - Layout Condicional */}
-        <div className={`grid gap-4 ${activeTab === 'total' ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-4'}`}>
+        {/* CARDS DE TOTAL (KPIs) - 4 COLUNAS EM TODAS AS ABAS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          {/* NOVO: CARD CONSOLIDADO (Apenas na aba Total) */}
-          {activeTab === 'total' && (
-            <div className="lg:col-span-2">
-                <ConsolidatedKpiCard 
-                    data={consolidatedTotal} 
-                    totalProfessors={consolidatedTotal["Total Professores"]}
-                    totalStudents={consolidatedTotal["Total Alunos"]}
-                    totalBase={consolidatedTotal["Total Base (Prof + Aluno)"]}
-                />
-            </div>
-          )}
-
-          {/* Card Arrecadado (Ocupa 1/4 ou 1/2 dependendo da aba) */}
+          {/* 1. Card Arrecadado */}
           <KpiCard 
             title="Arrecadado" 
             value={totalRow[keys.paid]} 
             icon={<DollarSign className="text-emerald-600 w-5 h-5" />} 
             colorClass="border-emerald-500 bg-emerald-50"
             textColor="text-emerald-700"
-            subtitle=""
-            isTotalCard={activeTab === 'total'}
+            subtitle={activeTab === 'total' ? '(Professores + Alunos)' : ''}
           />
           
-          {/* Card Faltante (Ocupa 1/4 ou 1/2 dependendo da aba) */}
+          {/* 2. Card Faltante */}
           <KpiCard 
             title="Faltante" 
             value={totalRow[keys.missing]} 
             icon={<AlertCircle className="text-rose-600 w-5 h-5" />} 
             colorClass="border-rose-500 bg-rose-50"
             textColor="text-rose-700"
-            subtitle=""
-            isTotalCard={activeTab === 'total'}
+            subtitle={activeTab === 'total' ? '(Professores + Alunos)' : ''}
           />
 
-          {/* Cards Pessoas (Apenas nas abas Prof/Aluno) */}
-          {activeTab !== 'total' && (
-            <>
-              <KpiCard 
-                  title="Pessoas Confirmadas" 
-                  value={totalPeopleBase} 
-                  isCurrency={false}
-                  icon={<Users className="text-blue-600 w-5 h-5" />} 
-                  colorClass="border-blue-500 bg-blue-50"
-                  textColor="text-blue-700"
-                  subtitle={`(${keys.kpi_people_label})`}
-              />
-              <KpiCard 
-                  title="Total Acompanhantes" 
-                  value={totalCompanionsCount} 
-                  isCurrency={false}
-                  icon={<Users className="text-purple-600 w-5 h-5" />} 
-                  colorClass="border-purple-500 bg-purple-50"
-                  textColor="text-purple-700"
-                  subtitle={`(${keys.kpi_companion_label})`}
-              />
-            </>
-          )}
+          {/* 3. Card Pessoas Base Confirmadas (Professores ou Alunos) */}
+          <KpiCard 
+              title={keys.kpi_people_title} 
+              value={totalPeopleBase} 
+              isCurrency={false}
+              icon={<CheckCircle className="text-blue-600 w-5 h-5" />} 
+              colorClass="border-blue-500 bg-blue-50"
+              textColor="text-blue-700"
+              subtitle={keys.kpi_people_label}
+          />
+          
+          {/* 4. Card Total Acompanhantes */}
+          <KpiCard 
+              title="Total Acompanhantes" 
+              value={totalCompanionsCount} 
+              isCurrency={false}
+              icon={<Users className="text-purple-600 w-5 h-5" />} 
+              colorClass="border-purple-500 bg-purple-50"
+              textColor="text-purple-700"
+              subtitle={keys.kpi_companion_label}
+          />
 
         </div>
         
@@ -333,69 +314,7 @@ export default function Dashboard() {
   );
 }
 
-// --- NOVO COMPONENTE CONSOLIDADO ---
-const ConsolidatedKpiCard = ({ data, totalProfessors, totalStudents, totalBase }) => (
-    <div className={`p-6 rounded-xl border border-slate-200 shadow-lg flex flex-col justify-between relative overflow-hidden bg-white h-full`}>
-        <div className="flex justify-between items-start mb-4 border-b pb-3">
-            <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                <Zap className="w-6 h-6 text-blue-600" />
-                Resumo Geral e Pessoas
-            </h2>
-             <span className="text-4xl font-extrabold text-blue-600">
-                {data["Total Pessoas (Geral)"]}
-            </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 text-sm font-medium">
-            
-            {/* Linha 1: Financeiro */}
-            <MiniSummary
-                label="Total Arrecadado"
-                value={data["Pagamento Consolidado"]}
-                icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
-                textColor="text-emerald-700"
-            />
-            <MiniSummary
-                label="Total Faltante"
-                value={data["Faltante Consolidado"]}
-                icon={<Clock className="w-4 h-4 text-rose-600" />}
-                textColor="text-rose-700"
-            />
-
-            {/* Linha 2: Pessoas Confirmadas */}
-            <MiniSummary
-                label="Pessoas Base (Prof + Aluno)"
-                value={totalBase}
-                icon={<CheckCircle className="w-4 h-4 text-blue-600" />}
-                isCurrency={false}
-                subtitle={`(${totalProfessors} Prof + ${totalStudents} Aluno)`}
-            />
-             <MiniSummary
-                label="Acompanhantes Confirmados"
-                value={data["Total Acompanhantes"]}
-                icon={<Users className="w-4 h-4 text-purple-600" />}
-                isCurrency={false}
-            />
-
-        </div>
-    </div>
-);
-
-// --- COMPONENTE MINI SUMÁRIO PARA O CARD CONSOLIDADO ---
-const MiniSummary = ({ label, value, icon, isCurrency = true, textColor = 'text-slate-700', subtitle = '' }) => (
-    <div className="flex flex-col p-3 bg-slate-50 rounded-lg border border-slate-200">
-        <div className="flex items-center text-slate-500 mb-1">
-            {icon}
-            <span className="ml-2 text-xs font-semibold uppercase">{label}</span>
-        </div>
-        <div className={`text-xl font-bold ${textColor}`}>
-            {isCurrency ? formatCurrency(value) : value}
-        </div>
-        {subtitle && <span className="text-xs text-slate-500 mt-1">{subtitle}</span>}
-    </div>
-);
-
-// --- COMPONENTES VISUAIS AUXILIARES (Mantidos/Ajustados) ---
+// --- COMPONENTES VISUAIS AUXILIARES (Ajustados) ---
 
 const TabButton = ({ isActive, onClick, label, icon }) => (
   <button
@@ -411,8 +330,8 @@ const TabButton = ({ isActive, onClick, label, icon }) => (
   </button>
 );
 
-const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true, subtitle = '', isTotalCard = false }) => (
-  <div className={`p-5 rounded-xl border shadow-sm flex flex-col justify-between relative overflow-hidden bg-white ${isTotalCard ? 'lg:col-span-1' : ''}`}>
+const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true, subtitle = '' }) => (
+  <div className={`p-5 rounded-xl border shadow-sm flex flex-col justify-between relative overflow-hidden bg-white`}>
     <div className={`absolute top-0 right-0 p-3 rounded-bl-xl border-b border-l ${colorClass}`}>
         {icon}
     </div>
