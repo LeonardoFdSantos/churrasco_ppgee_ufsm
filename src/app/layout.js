@@ -2,7 +2,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Dashboard Financeiro',
+  title: 'Churrasco do PPGEE UFSM',
   description: 'Painel de controle financeiro',
 }
 
