@@ -145,7 +145,7 @@ export default function Dashboard() {
         {/* Cabeçalho e Navegação */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Financeiro</h1>
+            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Churrasco do PPGEE UFSM</h1>
             <p className="text-slate-500 mt-1">Acompanhamento em tempo real</p>
           </div>
           
