@@ -24,7 +24,7 @@ const formatCurrency = (val) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 };
 
-// --- FUNÇÃO CORRIGIDA PARA CALCULAR O TOTAL CONSOLIDADO ---
+// --- FUNÇÃO PARA CALCULAR O TOTAL CONSOLIDADO ---
 const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
   if (!professoresTotal || !alunosTotal) return {};
 
@@ -37,14 +37,13 @@ const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
   const totalPeopleConfirmed = (professoresTotal["Professores confirmados"] || 0) + (alunosTotal["Alunos confirmados"] || 0);
   const totalCompanions = (professoresTotal["Acompanhantes confirmados"] || 0) + (alunosTotal["Acompanhantes confirmados"] || 0);
   
-  // O valor correto que queremos exibir no KPI
   const totalAllPeople = totalPeopleConfirmed + totalCompanions;
 
   return {
     "": "Total Consolidado",
     "Pessoas Confirmadas (Prof + Aluno)": totalPeopleConfirmed,
     "Acompanhantes Confirmados (Prof + Aluno)": totalCompanions,
-    "Total Pessoas (Base + Acomp.)": totalAllPeople, // Este deve ser 164
+    "Total Pessoas (Base + Acomp.)": totalAllPeople,
     "Pagamento Consolidado": totalPaid,
     "Faltante Consolidado": totalMissing,
     "Esperado Consolidado": totalExpected
@@ -100,7 +99,11 @@ export default function Dashboard() {
       missing: "Faltante",
       expected: "Valores Esperados",
       people_confirmed: "Professores confirmados",
-      companions: "Acompanhantes confirmados"
+      companions: "Acompanhantes confirmados",
+      // Chaves para exibição nos Cards
+      kpi_people_label: 'Professores',
+      kpi_companion_label: 'Acomp. Professores',
+      kpi_total_label: 'Prof + Acomp',
     };
   } else if (activeTab === "alunos") {
     currentData = data.tabela_alunos;
@@ -110,10 +113,13 @@ export default function Dashboard() {
       missing: "Valores Faltante",
       expected: "Valores Esperados",
       people_confirmed: "Alunos confirmados",
-      companions: "Acompanhantes confirmados"
+      companions: "Acompanhantes confirmados",
+      // Chaves para exibição nos Cards
+      kpi_people_label: 'Alunos',
+      kpi_companion_label: 'Acomp. Alunos',
+      kpi_total_label: 'Alunos + Acomp',
     };
   } else if (activeTab === "total") {
-    // ABA TOTAL - AGORA OS KPIs DE PESSOAS VÊM DA CHAVE CORRETA NO OBJETO CONSOLIDADO
     currentData = [];
     totalRow = consolidatedTotal; 
     keys = {
@@ -121,9 +127,12 @@ export default function Dashboard() {
       paid: "Pagamento Consolidado",
       missing: "Faltante Consolidado",
       expected: "Esperado Consolidado",
-      // CHAVE CORRIGIDA USADA PELO KPI "Total Pessoas"
-      people_confirmed: "Total Pessoas (Base + Acomp.)", 
-      companions: "Acompanhantes Confirmados (Prof + Aluno)"
+      people_confirmed: "Total Pessoas (Base + Acomp.)", // Valor total para o KPI
+      companions: "Acompanhantes Confirmados (Prof + Aluno)",
+      // Chaves para exibição nos Cards
+      kpi_people_label: 'Professores + Alunos',
+      kpi_companion_label: 'Total Acompanhantes',
+      kpi_total_label: 'Pessoas Gerais', // Usaremos este para o Total Pessoas
     };
   }
 
@@ -132,11 +141,17 @@ export default function Dashboard() {
     listData = currentData.filter((row) => row[""] !== "Total");
   }
   
-  // ESTE CÁLCULO NÃO É MAIS NECESSÁRIO AQUI PARA O TOTAL GERAL, POIS JÁ VEM NO totalRow DA ABA 'total'
-  // Mas é mantido para as abas Prof/Aluno:
-  const totalAllPeople = activeTab === 'total' 
-    ? totalRow[keys.people_confirmed] // Puxa o valor de 164
-    : (totalRow[keys.people_confirmed] || 0) + (totalRow[keys.companions] || 0);
+  const totalPeopleBase = activeTab === 'total' 
+    ? consolidatedTotal["Pessoas Confirmadas (Prof + Aluno)"] 
+    : (totalRow[keys.people_confirmed] || 0);
+
+  const totalCompanionsCount = activeTab === 'total'
+    ? consolidatedTotal["Acompanhantes Confirmados (Prof + Aluno)"]
+    : (totalRow[keys.companions] || 0);
+
+  // Calcula o total geral de pessoas (base + acompanhantes)
+  const totalAllPeople = totalPeopleBase + totalCompanionsCount;
+
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
@@ -145,7 +160,7 @@ export default function Dashboard() {
         {/* Cabeçalho e Navegação */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Churrasco do PPGEE UFSM</h1>
+            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Financeiro</h1>
             <p className="text-slate-500 mt-1">Acompanhamento em tempo real</p>
           </div>
           
@@ -170,7 +185,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* CARDS DE TOTAL (KPIs) - AGORA EXIBE 164 CORRETAMENTE */}
+        {/* CARDS DE TOTAL (KPIs) - COM DESCRIÇÃO MELHORADA */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <KpiCard 
             title="Arrecadado" 
@@ -178,6 +193,7 @@ export default function Dashboard() {
             icon={<DollarSign className="text-emerald-600 w-5 h-5" />} 
             colorClass="border-emerald-500 bg-emerald-50"
             textColor="text-emerald-700"
+            subtitle="" // Sem subtítulo para valores
           />
           <KpiCard 
             title="Faltante" 
@@ -185,22 +201,29 @@ export default function Dashboard() {
             icon={<AlertCircle className="text-rose-600 w-5 h-5" />} 
             colorClass="border-rose-500 bg-rose-50"
             textColor="text-rose-700"
+            subtitle="" // Sem subtítulo para valores
           />
+          {/* Card Total Pessoas: Agora exibe 164 (Base + Acomp) */}
           <KpiCard 
-            title="Total Pessoas" 
-            value={totalAllPeople} // Usa o valor corrigido de 164
+            title="Pessoas Confirmadas" 
+            value={totalAllPeople} 
             isCurrency={false}
             icon={<Users className="text-blue-600 w-5 h-5" />} 
             colorClass="border-blue-500 bg-blue-50"
             textColor="text-blue-700"
+            // Subtítulo que explica o que é o total
+            subtitle={`(Base + Acompanhantes)`}
           />
+           {/* Card Acompanhantes: Agora exibe 19 */}
            <KpiCard 
-            title="Acompanhantes" 
-            value={totalRow[keys.companions]} 
+            title="Total Acompanhantes" 
+            value={totalCompanionsCount} 
             isCurrency={false}
             icon={<Users className="text-purple-600 w-5 h-5" />} 
             colorClass="border-purple-500 bg-purple-50"
             textColor="text-purple-700"
+            // Subtítulo que explica o que é a base
+            subtitle={`(${keys.kpi_companion_label})`}
           />
         </div>
         
@@ -214,9 +237,9 @@ export default function Dashboard() {
                     <SummaryRow label="Faltante Total" value={consolidatedTotal["Faltante Consolidado"]} isMissing={true}/>
                     <SummaryRow label="Esperado Total" value={consolidatedTotal["Esperado Consolidado"]} isMissing={false}/>
                     <hr className="my-3"/>
-                    <SummaryRow label="Total de Pessoas (Base)" value={consolidatedTotal["Pessoas Confirmadas (Prof + Aluno)"]} isMissing={false} isCurrency={false}/>
+                    <SummaryRow label="Total de Pessoas (Base: Prof + Aluno)" value={consolidatedTotal["Pessoas Confirmadas (Prof + Aluno)"]} isMissing={false} isCurrency={false}/>
                     <SummaryRow label="Total de Acompanhantes" value={consolidatedTotal["Acompanhantes Confirmados (Prof + Aluno)"]} isMissing={false} isCurrency={false}/>
-                    <SummaryRow label="PESSOAS TOTAIS" value={consolidatedTotal["Total Pessoas (Base + Acomp.)"]} isMissing={false} isCurrency={false} isBold={true}/>
+                    <SummaryRow label="PESSOAS TOTAIS GERAIS" value={consolidatedTotal["Total Pessoas (Base + Acomp.)"]} isMissing={false} isCurrency={false} isBold={true}/>
                 </div>
             </div>
         ) : (
@@ -291,7 +314,7 @@ export default function Dashboard() {
   );
 }
 
-// --- COMPONENTES VISUAIS (Mantidos) ---
+// --- COMPONENTES VISUAIS (Aprimorados) ---
 
 const TabButton = ({ isActive, onClick, label, icon }) => (
   <button
@@ -307,7 +330,8 @@ const TabButton = ({ isActive, onClick, label, icon }) => (
   </button>
 );
 
-const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true }) => (
+// COMPONENTE KPI ATUALIZADO PARA RECEBER SUBTÍTULO
+const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true, subtitle = '' }) => (
   <div className={`p-5 rounded-xl border shadow-sm flex flex-col justify-between relative overflow-hidden bg-white`}>
     <div className={`absolute top-0 right-0 p-3 rounded-bl-xl border-b border-l ${colorClass}`}>
         {icon}
@@ -315,8 +339,10 @@ const KpiCard = ({ title, value, icon, colorClass, textColor, isCurrency = true 
     
     <div>
       <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-      <p className={`text-2xl font-bold ${textColor}`}>
+      <p className={`text-2xl font-bold ${textColor} flex items-baseline gap-2`}>
         {isCurrency ? formatCurrency(value) : value}
+        {/* NOVO: Exibe o subtítulo ao lado do valor */}
+        {subtitle && <span className="text-sm font-medium text-slate-500 normal-case">{subtitle}</span>}
       </p>
     </div>
   </div>
