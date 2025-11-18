@@ -16,7 +16,7 @@ import {
 import { DollarSign, Users, AlertCircle, Loader2, TrendingUp, Zap, CheckCircle, Clock } from "lucide-react";
 
 // ⚠️ SEU LINK (Mantenha o que você já configurou)
-const API_URL = "SEU_LINK_DO_APPS_SCRIPT_AQUI";
+const API_URL = "https://script.google.com/macros/s/AKfycbzxXmTlxzi_DNjy2kume35loHfgFicyCSeIuUjtoe6uhS_XXL7qU2DI04xmrPBLEXy2TA/exec";
 
 // Função utilitária para formatar dinheiro (BRL) - MANTIDA
 const formatCurrency = (val) => {
