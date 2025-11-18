@@ -1,4 +1,5 @@
-// src/app/page.js
+// src/app/page.js (Substitua todo o conteúdo)
+
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -17,13 +18,13 @@ import { DollarSign, Users, AlertCircle, Loader2, TrendingUp, Zap } from "lucide
 // ⚠️ SEU LINK (Mantenha o que você já configurou)
 const API_URL = "https://script.google.com/macros/s/AKfycbzxXmTlxzi_DNjy2kume35loHfgFicyCSeIuUjtoe6uhS_XXL7qU2DI04xmrPBLEXy2TA/exec";
 
-// Função utilitária para formatar dinheiro (BRL)
+// Função utilitária para formatar dinheiro (BRL) - MANTIDA
 const formatCurrency = (val) => {
   if (val === undefined || val === null || isNaN(val)) return "R$ 0,00";
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 };
 
-// --- FUNÇÃO PARA CALCULAR O TOTAL CONSOLIDADO ---
+// --- FUNÇÃO CORRIGIDA PARA CALCULAR O TOTAL CONSOLIDADO ---
 const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
   if (!professoresTotal || !alunosTotal) return {};
 
@@ -34,17 +35,16 @@ const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
 
   // Soma de pessoas (contagem)
   const totalPeopleConfirmed = (professoresTotal["Professores confirmados"] || 0) + (alunosTotal["Alunos confirmados"] || 0);
-  
-  // CORREÇÃO CRUCIAL: Usando a chave com 'c' minúsculo
   const totalCompanions = (professoresTotal["Acompanhantes confirmados"] || 0) + (alunosTotal["Acompanhantes confirmados"] || 0);
   
+  // O valor correto que queremos exibir no KPI
   const totalAllPeople = totalPeopleConfirmed + totalCompanions;
 
   return {
     "": "Total Consolidado",
     "Pessoas Confirmadas (Prof + Aluno)": totalPeopleConfirmed,
     "Acompanhantes Confirmados (Prof + Aluno)": totalCompanions,
-    "Total Pessoas (Base + Acomp.)": totalAllPeople,
+    "Total Pessoas (Base + Acomp.)": totalAllPeople, // Este deve ser 164
     "Pagamento Consolidado": totalPaid,
     "Faltante Consolidado": totalMissing,
     "Esperado Consolidado": totalExpected
@@ -100,8 +100,7 @@ export default function Dashboard() {
       missing: "Faltante",
       expected: "Valores Esperados",
       people_confirmed: "Professores confirmados",
-      // CHAVE CORRIGIDA (c minúsculo)
-      companions: "Acompanhantes confirmados" 
+      companions: "Acompanhantes confirmados"
     };
   } else if (activeTab === "alunos") {
     currentData = data.tabela_alunos;
@@ -114,6 +113,7 @@ export default function Dashboard() {
       companions: "Acompanhantes confirmados"
     };
   } else if (activeTab === "total") {
+    // ABA TOTAL - AGORA OS KPIs DE PESSOAS VÊM DA CHAVE CORRETA NO OBJETO CONSOLIDADO
     currentData = [];
     totalRow = consolidatedTotal; 
     keys = {
@@ -121,7 +121,8 @@ export default function Dashboard() {
       paid: "Pagamento Consolidado",
       missing: "Faltante Consolidado",
       expected: "Esperado Consolidado",
-      people_confirmed: "Total Pessoas (Base + Acomp.)",
+      // CHAVE CORRIGIDA USADA PELO KPI "Total Pessoas"
+      people_confirmed: "Total Pessoas (Base + Acomp.)", 
       companions: "Acompanhantes Confirmados (Prof + Aluno)"
     };
   }
@@ -131,7 +132,11 @@ export default function Dashboard() {
     listData = currentData.filter((row) => row[""] !== "Total");
   }
   
-  const totalAllPeople = (totalRow[keys.people_confirmed] || 0) + (totalRow[keys.companions] || 0);
+  // ESTE CÁLCULO NÃO É MAIS NECESSÁRIO AQUI PARA O TOTAL GERAL, POIS JÁ VEM NO totalRow DA ABA 'total'
+  // Mas é mantido para as abas Prof/Aluno:
+  const totalAllPeople = activeTab === 'total' 
+    ? totalRow[keys.people_confirmed] // Puxa o valor de 164
+    : (totalRow[keys.people_confirmed] || 0) + (totalRow[keys.companions] || 0);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
@@ -140,7 +145,7 @@ export default function Dashboard() {
         {/* Cabeçalho e Navegação */}
         <div className="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Churrasco do PPGEE</h1>
+            <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Financeiro</h1>
             <p className="text-slate-500 mt-1">Acompanhamento em tempo real</p>
           </div>
           
@@ -165,7 +170,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* CARDS DE TOTAL (KPIs) */}
+        {/* CARDS DE TOTAL (KPIs) - AGORA EXIBE 164 CORRETAMENTE */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <KpiCard 
             title="Arrecadado" 
@@ -183,7 +188,7 @@ export default function Dashboard() {
           />
           <KpiCard 
             title="Total Pessoas" 
-            value={totalAllPeople} 
+            value={totalAllPeople} // Usa o valor corrigido de 164
             isCurrency={false}
             icon={<Users className="text-blue-600 w-5 h-5" />} 
             colorClass="border-blue-500 bg-blue-50"
@@ -237,7 +242,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* TABELA DETALHADA (Ocupa 2/3) - Atualizada com Acompanhantes */}
+                {/* TABELA DETALHADA (Ocupa 2/3) - Mantida igual */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                     <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                         <h3 className="text-lg font-semibold text-slate-700">Detalhamento por Grupo</h3>
