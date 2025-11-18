@@ -1,4 +1,4 @@
-// src/app/page.js (Substitua todo o conteúdo)
+// src/app/page.js
 
 "use client";
 
@@ -14,19 +14,23 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { 
-    DollarSign, Users, AlertCircle, Loader2, Zap, CheckCircle, Clock, Target // NOVOS ÍCONES
+    DollarSign, Users, AlertCircle, Loader2, Zap, CheckCircle, Clock, Target, CreditCard
 } from "lucide-react";
 
-// ⚠️ SEU LINK (Mantenha o que você já configurou)
+// ⚠️ SUBSTITUA PELO SEU LINK DO APPS SCRIPT AQUI
 const API_URL = "https://script.google.com/macros/s/AKfycbzxXmTlxzi_DNjy2kume35loHfgFicyCSeIuUjtoe6uhS_XXL7qU2DI04xmrPBLEXy2TA/exec";
 
-// Função utilitária para formatar dinheiro (BRL) - MANTIDA
+// ====================================================================
+// FUNÇÕES UTILITÁRIAS
+// ====================================================================
+
+// Função para formatar dinheiro (BRL)
 const formatCurrency = (val) => {
   if (val === undefined || val === null || isNaN(val)) return "R$ 0,00";
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 };
 
-// --- FUNÇÃO PARA CALCULAR O TOTAL CONSOLIDADO ---
+// Função para calcular o Total Consolidado (Professores + Alunos)
 const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
   if (!professoresTotal || !alunosTotal) return {};
 
@@ -57,6 +61,11 @@ const calculateConsolidatedTotal = (professoresTotal, alunosTotal) => {
   };
 };
 
+
+// ====================================================================
+// COMPONENTE PRINCIPAL: DASHBOARD
+// ====================================================================
+
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,6 +81,7 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Cálculo e Memorização do Total Consolidado
   const consolidatedTotal = useMemo(() => {
     if (!data) return null;
     const profTotalRow = data.tabela_professores.find(row => row[""] === "Total");
@@ -82,7 +92,6 @@ export default function Dashboard() {
 
 
   if (loading) {
-    // ... Código de Carregamento ...
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
@@ -95,9 +104,11 @@ export default function Dashboard() {
 
   if (!data) return <div className="p-10 text-center text-red-500">Erro ao carregar dados.</div>;
 
-  // --- LÓGICA DE DADOS SELECIONADOS ---
-  
+  // --- EXTRAÇÃO DE DADOS E CHAVES ---
   let currentData, totalRow, listData, keys;
+  const profTotalData = data.tabela_professores.find(row => row[""] === "Total") || {};
+  const alunosTotalData = data.tabela_alunos.find(row => row[""] === "Total") || {};
+
 
   if (activeTab === "professores") {
     currentData = data.tabela_professores;
@@ -136,8 +147,6 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Painel Financeiro</h1>
             <p className="text-slate-500 mt-1">Acompanhamento em tempo real</p>
           </div>
-          
-          {/* Botões de Alternância (Abas) */}
           <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200">
             <TabButton isActive={activeTab === "professores"} onClick={() => setActiveTab("professores")} label="Professores" />
             <TabButton isActive={activeTab === "alunos"} onClick={() => setActiveTab("alunos")} label="Alunos" />
@@ -198,32 +207,92 @@ export default function Dashboard() {
              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <h2 className="text-xl font-bold mb-4 text-slate-800">Resumo Consolidado Detalhado</h2>
                 <div className="space-y-3 p-4 bg-slate-50 rounded-lg border">
-                    {/* Linha Financeira - COM ÍCONES E CORES CLARAS */}
+                    
+                    {/* LINHA 1: ARRECADADO TOTAL */}
                     <SummaryRow 
                         label="Arrecadado Total" 
                         value={consolidatedTotal["Pagamento Consolidado"]} 
                         isMissing={false}
                         icon={DollarSign}
                         valueColor="text-emerald-600"
+                        isBold={true}
                     />
+                    {/* Subtotais Arrecadado */}
+                    <SummaryRow 
+                        label="Arrecadado (Professores)" 
+                        value={profTotalData["Pagamentos confirmados"]} 
+                        isMissing={false}
+                        icon={CreditCard}
+                        isSubtotal={true}
+                        valueColor="text-slate-600"
+                    />
+                    <SummaryRow 
+                        label="Arrecadado (Alunos)" 
+                        value={alunosTotalData["Valor Pago"]} 
+                        isMissing={false}
+                        icon={CreditCard}
+                        isSubtotal={true}
+                        valueColor="text-slate-600"
+                    />
+                    
+                    {/* LINHA 2: FALTANTE TOTAL */}
                     <SummaryRow 
                         label="Faltante Total" 
                         value={consolidatedTotal["Faltante Consolidado"]} 
-                        isMissing={true} // Isso garante a cor vermelha (text-rose-600)
-                        icon={Clock}
+                        isMissing={true} 
+                        icon={AlertCircle}
+                        isBold={true}
                     />
+                    {/* Subtotais Faltante */}
+                    <SummaryRow 
+                        label="Faltante (Professores)" 
+                        value={profTotalData["Faltante"]} 
+                        isMissing={true}
+                        icon={Clock}
+                        isSubtotal={true}
+                        valueColor="text-rose-500"
+                    />
+                    <SummaryRow 
+                        label="Faltante (Alunos)" 
+                        value={alunosTotalData["Valores Faltante"]} 
+                        isMissing={true}
+                        icon={Clock}
+                        isSubtotal={true}
+                        valueColor="text-rose-500"
+                    />
+
+                    {/* LINHA 3: ESPERADO TOTAL */}
                     <SummaryRow 
                         label="Esperado Total" 
                         value={consolidatedTotal["Esperado Consolidado"]} 
                         isMissing={false}
                         icon={Target}
-                        valueColor="text-blue-600" // Cor azul para valor Esperado/Meta
+                        valueColor="text-blue-600" 
+                        isBold={true}
                     />
+                     {/* Subtotais Esperado */}
+                    <SummaryRow 
+                        label="Esperado (Professores)" 
+                        value={profTotalData["Valores Esperados"]} 
+                        isMissing={false}
+                        icon={Target}
+                        isSubtotal={true}
+                        valueColor="text-slate-600"
+                    />
+                    <SummaryRow 
+                        label="Esperado (Alunos)" 
+                        value={alunosTotalData["Valores Esperados"]} 
+                        isMissing={false}
+                        icon={Target}
+                        isSubtotal={true}
+                        valueColor="text-slate-600"
+                    />
+                    
 
-                    {/* Separador */}
+                    {/* SEPARADOR PESSOAS */}
                     <hr className="my-3 border-slate-300"/> 
 
-                    {/* Linha de Pessoas */}
+                    {/* Linha de Pessoas (Mantida) */}
                     <SummaryRow 
                         label="Total de Pessoas (Base: Prof + Aluno)" 
                         value={consolidatedTotal["Total Base (Prof + Aluno)"]} 
@@ -252,7 +321,6 @@ export default function Dashboard() {
                 </div>
             </div>
         ) : (
-            // ... Código do Gráfico e Tabela (mantido) ...
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* GRÁFICO (Ocupa 1/3) */}
                  <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
@@ -324,7 +392,9 @@ export default function Dashboard() {
   );
 }
 
-// --- COMPONENTES VISUAIS AUXILIARES (Ajustados) ---
+// ====================================================================
+// COMPONENTES VISUAIS AUXILIARES
+// ====================================================================
 
 const TabButton = ({ isActive, onClick, label, icon }) => (
   <button
@@ -356,16 +426,19 @@ const KpiCard = ({ title, value, icon: Icon, colorClass, textColor, isCurrency =
   </div>
 );
 
-// COMPONENTE SummaryRow ATUALIZADO
-const SummaryRow = ({ label, value, isMissing, isCurrency = true, isBold = false, icon: Icon, valueColor = 'text-emerald-600' }) => (
-    <div className={`flex justify-between items-center ${isBold ? 'font-bold text-lg border-t pt-2 border-slate-200' : 'text-sm'}`}>
+// COMPONENTE SummaryRow ATUALIZADO para SUBTOTAIS e ÍCONES
+const SummaryRow = ({ label, value, isMissing, isCurrency = true, isBold = false, icon: Icon, valueColor = 'text-emerald-600', isSubtotal = false }) => (
+    <div className={`flex justify-between items-center 
+        ${isBold ? 'font-bold text-base border-t pt-2 border-slate-200' : 'text-sm'}
+        ${isSubtotal ? 'ml-6 opacity-85 text-sm' : ''} // Estilo para indentação de subtotal
+    `}>
         <span className="flex items-center gap-2">
             {/* Ícone no Rótulo */}
             {Icon && <Icon className={`w-4 h-4 ${isBold ? 'text-slate-800' : 'text-slate-500'}`} />}
             {label}
         </span>
         {/* Cor do Valor: Se isMissing for true, usa rose-600, senão usa valueColor */}
-        <span className={`${isMissing ? 'text-rose-600' : valueColor}`}>
+        <span className={`${isMissing ? 'text-rose-600' : valueColor} font-semibold`}>
             {isCurrency ? formatCurrency(value) : value}
         </span>
     </div>
